@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class KeySet {
@@ -25,8 +27,27 @@ public class KeySet {
 		}
 		return out;
 	}
+	
+	public ArrayList<String> convertItemset(Itemset in){
+		ArrayList<String> out = new ArrayList<String>();
+		HashMap<Integer, String> map = invertKeysetMapping();
+		for(int i : in.getItems()) {
+			out.add(map.get(i));
+		}
+		return out;
+	}
 
 //---  Getter Methods   -----------------------------------------------------------------------
+	
+	public int[] getItemList() {
+		int[] out = new int[nameCodeMapping.values().size()];
+		int post = 0;
+		for(Integer i : nameCodeMapping.values()) {
+			out[post++] = i;
+		}
+		Arrays.sort(out);
+		return out;
+	}
 	
 	public int get(String in) {
 		if(nameCodeMapping.get(in) == null) {

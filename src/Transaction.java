@@ -19,6 +19,10 @@ public class Transaction {
 		return itemset.contains(in);
 	}
 	
+	public boolean supported(int id) {
+		return itemset.contains(id);
+	}
+	
 //---  Getter Methods   -----------------------------------------------------------------------
 	
 	public int getTID() {

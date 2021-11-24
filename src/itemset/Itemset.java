@@ -1,3 +1,4 @@
+package itemset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -33,10 +34,30 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 	}
 	
 //---  Operations   ---------------------------------------------------------------------------
+
+	//-- Refer to Item id Equality  ---------------------------
 	
-	public static void assignKeySet(KeySet in) {
-		keySet = in;
+	public boolean contains(Itemset o) {
+		for(int i : o.getItems()) {
+			if(!contains(i)) {
+				return false;
+			}
+		}
+		return true;
 	}
+	
+	public boolean contains(int id) {
+		if((id < keySet.getMaxItemId() || id % keySet.getMaxItemId() != 0 ? indexOf(id) : indexOfCategorical(id)) == -1) {
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * The blending process is not about support, so does not need to use the categorical equivalence
+	 * when making new itemsets out of two parent itemsets
+	 * 
+	 */
 
 	public Itemset blend(Itemset o) {
 		if(getSize() != o.getSize()) {
@@ -59,21 +80,13 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 		return null;
 	}
 	
-	public boolean contains(Itemset o) {
-		for(int i : o.getItems()) {
-			if(indexOf(i) == -1) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	public boolean contains(int id) {
-		if(indexOf(id) == -1) {
-			return false;
-		}
-		return true;
-	}
+	/**
+	 * 
+	 * Generates the set of Itemsets that are one size smaller than the current Itemset (basically
+	 * the sets you get by removing 
+	 * 
+	 * @return
+	 */
 
 	public ArrayList<Itemset> generateSizeDownSet(){
 		ArrayList<Itemset> out = new ArrayList<Itemset>();
@@ -120,7 +133,8 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 	}
 
 	/*
-	 * Assumes all elements in Itemset o are present in the Itemset calling this function. 
+	 * Assumes all elements in Itemset o are present in the Itemset calling this function,
+	 * also is not about support so does not use categorical equivalency.
 	 * 
 	 */
 	
@@ -128,15 +142,42 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 		int[] copy = new int[getSize() - o.getItems().length];
 		int posit = 0;
 		for(int i = 0; i < items.length; i++) {
-			if(!o.contains(items[i]))
+			if(o.indexOf(items[i]) == -1)
 				copy[posit++] = items[i];
 		}
 		return new Itemset(copy);
 	}
 	
-//---  Getter Methods   -----------------------------------------------------------------------
+	public Itemset getParentOne() {
+		int[] out = new int[getSize() - 1];
+		for(int i = 0; i < out.length; i++) {
+			out[i] = items[i];
+		}
+		return new Itemset(out);
+	}
 	
-	public int[] getItems() {
+	public Itemset getParentTwo() {
+		int[] out = new int[getSize() - 1];
+		for(int i = 0; i < out.length - 1; i++) {
+			out[i] = items[i];
+		}
+		out[out.length - 1] = items[items.length - 1];
+		return new Itemset(out);
+	}
+	
+	public int countCategories() {
+		int out = 0;
+		for(int i : items) {
+			if(i % keySet.getMaxItemId() == 0) {
+				out++;
+			}
+		}
+		return out;
+	}
+	
+//---  Getter Methods   -----------------------------------------------------------------------
+
+	protected int[] getItems() {
 		return items;
 	}
 
@@ -144,7 +185,18 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 		return items.length;
 	}
 	
-	private int indexOf(int key) {
+	private int indexOfCategorical(int key) {
+		int cap = (int)(Math.pow(10, (int)Math.log10(key) - 1));
+		for(int i = 0; i < items.length; i++) {
+			int v = items[i] - key;
+			if(v > 0 && v < cap) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	protected int indexOf(int key) {
 		for(int i = 0; i < items.length; i++) {
 			if(items[i] == key) {
 				return i;
@@ -157,6 +209,12 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 		return keySet.get(in);
 	}
 	
+//---  Setter Methods   -----------------------------------------------------------------------
+	
+	public static void assignKeySet(KeySet in) {
+		keySet = in;
+	}
+
 //---  Mechanics   ----------------------------------------------------------------------------
 	
 	@Override
@@ -178,7 +236,6 @@ public class Itemset implements Comparator<Itemset>, Comparable<Itemset>{
 			return false;
 		}
 	}
-
 
 	@Override
 	public int compare(Itemset o1, Itemset o2) {

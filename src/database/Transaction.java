@@ -1,3 +1,6 @@
+package database;
+
+import itemset.Itemset;
 
 public class Transaction {
 

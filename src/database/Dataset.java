@@ -1,5 +1,8 @@
+package database;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import itemset.Itemset;
 
 public class Dataset {
 
